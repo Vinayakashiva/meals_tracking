@@ -19,7 +19,7 @@ import datetime
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-SHEET_NAME = "CheckIn"
+SHEET_NAME = "CheckIn & meals_Tracking"
 DATA_RANGE = f"{SHEET_NAME}!A2:J"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
