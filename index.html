@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Official Meals Register — Hackathon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root{
+    --navy:#16305C;
+    --navy-deep:#0E2144;
+    --gold:#B8912F;
+    --bg:#F4F6F9;
+    --panel:#FFFFFF;
+    --border:#E3E7EE;
+    --text:#1F2937;
+    --text-muted:#6B7280;
+    --green:#15803D;
+    --green-bg:#E7F6EC;
+    --red:#B91C1C;
+    --red-bg:#FCE9E9;
+    --font-display:'Playfair Display', serif;
+    --font-body:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+  }
+
+  .letterhead{
+    background:linear-gradient(180deg, var(--navy-deep), var(--navy));
+    color:#fff;
+    padding:26px 32px 22px 32px;
+    border-bottom:4px solid var(--gold);
+  }
+  .letterhead-inner{
+    max-width:1200px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .letterhead h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .letterhead .subtitle{
+    font-size:13px;
+    color:#C9D3E4;
+    margin-top:4px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+  .seal{
+    font-family:var(--font-display);
+    font-size:12px;
+    color:var(--gold);
+    border:1px solid rgba(184,145,47,0.6);
+    padding:8px 14px;
+    border-radius:6px;
+    text-align:center;
+    line-height:1.5;
+  }
+  .stats-row{
+    display:flex;
+    gap:26px;
+    margin-top:16px;
+    font-size:13px;
+    color:#C9D3E4;
+  }
+  .stats-row b{color:#fff; font-size:15px;}
+
+  .layout{
+    max-width:1200px;
+    margin:0 auto;
+    padding:28px 32px 60px 32px;
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:24px;
+  }
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:22px;
+    box-shadow:0 1px 3px rgba(16,24,40,0.04);
+  }
+  .panel h2{
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--navy);
+    margin:0 0 16px 0;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+  }
+
+  #reader{
+    width:100%;
+    border-radius:8px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    background:#0E1116;
+  }
+  .scan-hint{
+    font-size:12.5px;
+    color:var(--text-muted);
+    text-align:center;
+    margin-top:10px;
+  }
+  button{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:13.5px;
+    border:none;
+    border-radius:7px;
+    padding:11px 16px;
+    cursor:pointer;
+    transition:opacity 0.15s ease, transform 0.08s ease;
+  }
+  button:active{transform:scale(0.98);}
+  .btn-navy{background:var(--navy); color:#fff; width:100%; margin-top:14px;}
+  .btn-navy:hover{opacity:0.92;}
+  .btn-outline{background:#fff; color:var(--navy); border:1px solid var(--border);}
+  .btn-outline:hover{border-color:var(--navy);}
+
+  .manual-search{margin-top:20px; padding-top:18px; border-top:1px dashed var(--border);}
+  .manual-search label{font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;}
+  .search-row{display:flex; gap:8px; margin-top:8px;}
+  input[type=text]{
+    flex:1;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-family:var(--font-body);
+    font-size:14px;
+    color:var(--text);
+  }
+  input[type=text]:focus{outline:none; border-color:var(--navy);}
+
+  .empty-state{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:400px;
+    color:var(--text-muted);
+    text-align:center;
+    gap:10px;
+  }
+  .empty-state .glyph{font-size:38px; color:var(--border);}
+
+  .team-header{margin-bottom:20px;}
+  .team-header h1{
+    font-family:var(--font-display);
+    font-size:24px;
+    margin:0 0 6px 0;
+    color:var(--navy);
+  }
+  .team-header .meta{font-size:13px; color:var(--text-muted);}
+  .team-header .meta b{color:var(--navy);}
+
+  .roster{display:flex; flex-direction:column; gap:10px;}
+  .member-card{
+    padding:14px 16px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:#FBFCFE;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .member-card .name{font-weight:600; font-size:15px; min-width:140px;}
+
+  .meal-groups{display:flex; gap:22px; flex-wrap:wrap;}
+  .meal-group{display:flex; align-items:center; gap:8px;}
+  .meal-group .meal-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--text-muted);
+    width:52px;
+  }
+  .toggle-btns{display:flex; gap:6px;}
+  .toggle-btns button{padding:7px 12px; font-size:12px;}
+  .toggle-btns .active-on{background:var(--green); color:#fff;}
+  .toggle-btns .active-off{background:var(--red); color:#fff;}
+  .toggle-btns .inactive{background:#fff; color:var(--text-muted); border:1px solid var(--border);}
+
+  #toast{
+    position:fixed;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%) translateY(16px);
+    background:var(--navy);
+    color:#fff;
+    padding:11px 20px;
+    border-radius:7px;
+    font-size:13.5px;
+    opacity:0;
+    transition:all 0.25s ease;
+    pointer-events:none;
+    z-index:999;
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--text-muted);
+    padding:0 32px 30px 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="letterhead">
+  <div class="letterhead-inner">
+    <div>
+      <h1>Hackathon 2026 — Official Meals Register</h1>
+      <div class="subtitle">Catering Desk · Member-wise Meal Tracking</div>
+    </div>
+    <div class="seal">VERIFIED<br>CHECK-IN SYSTEM</div>
+  </div>
+  <div class="stats-row">
+    <span>Teams Scanned Today: <b id="statScanned">0</b></span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <h2>Scan Team QR Code</h2>
+    <div id="reader"></div>
+    <div class="scan-hint">Hold the team's QR code steady in front of the camera</div>
+    <button class="btn-navy" id="scanToggle" onclick="toggleScanner()">Start Camera</button>
+
+    <div class="manual-search">
+      <label>Or enter Team ID manually</label>
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="e.g. HK2026-001" onkeydown="if(event.key==='Enter') manualLookup()">
+        <button class="btn-outline" onclick="manualLookup()">Go</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Team Roster</h2>
+    <div class="empty-state" id="emptyState">
+      <div class="glyph">☐</div>
+      <div>Scan a team's QR code to display<br>its members here for meal tracking.</div>
+    </div>
+    <div id="teamContent" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>Hackathon 2026 · Official Meals System · Data synced live to Google Sheets</footer>
+<div id="toast"></div>
+
+<script>
+let currentTeam = null;
+let scannerRunning = false;
+let html5QrCode = null;
+let scannedTeamsCount = 0;
+let scannedIds = new Set();
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadTeam(teamId){
+  try{
+    const res = await fetch(`/api/team?team_id=${encodeURIComponent(teamId)}`);
+    if(!res.ok){
+      const err = await res.json();
+      showToast(err.error || 'Team not found');
+      return;
+    }
+    const team = await res.json();
+    currentTeam = team;
+    renderTeam(team);
+    if(!scannedIds.has(team.team_id)){
+      scannedIds.add(team.team_id);
+      scannedTeamsCount++;
+      document.getElementById('statScanned').textContent = scannedTeamsCount;
+    }
+  }catch(e){
+    showToast('Network error — check your connection');
+    console.error(e);
+  }
+}
+
+function mealToggle(row, meal, current){
+  return `
+    <div class="meal-group">
+      <span class="meal-label">${meal === 'lunch' ? 'Lunch' : 'Tiffin'}</span>
+      <div class="toggle-btns">
+        <button class="${current ? 'active-on':'inactive'}" onclick="markMeal(${row}, '${meal}', true)">Taken</button>
+        <button class="${!current ? 'active-off':'inactive'}" onclick="markMeal(${row}, '${meal}', false)">Not Yet</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTeam(team){
+  document.getElementById('emptyState').style.display = 'none';
+  const content = document.getElementById('teamContent');
+  content.style.display = 'block';
+
+  const rosterHtml = team.members.map(m => `
+    <div class="member-card">
+      <div class="name">${escapeHtml(m.name)}</div>
+      <div class="meal-groups">
+        ${mealToggle(m.row, 'lunch', m.lunch)}
+        ${mealToggle(m.row, 'tiffin', m.tiffin)}
+      </div>
+    </div>
+  `).join('');
+
+  content.innerHTML = `
+    <div class="team-header">
+      <h1>${escapeHtml(team.team_name)}</h1>
+      <div class="meta">Team ID <b>${escapeHtml(team.team_id)}</b> &nbsp;·&nbsp; Table ${escapeHtml(team.table_number || '—')} &nbsp;·&nbsp; ${escapeHtml(team.project_title || 'No project title')}</div>
+    </div>
+    <div class="roster">${rosterHtml}</div>
+  `;
+}
+
+async function markMeal(row, meal, taken){
+  try{
+    const res = await fetch('/api/mark', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({row, meal, taken})
+    });
+    if(!res.ok){
+      const err = await res.json();
+      showToast(err.error || 'Could not update');
+      return;
+    }
+    const member = currentTeam.members.find(m => m.row === row);
+    if(member){
+      if(meal === 'lunch') member.lunch = taken; else member.tiffin = taken;
+    }
+    renderTeam(currentTeam);
+    showToast(`${meal === 'lunch' ? 'Lunch' : 'Tiffin'} marked ${taken ? 'taken':'not taken'}`);
+  }catch(e){
+    showToast('Network error — check your connection');
+    console.error(e);
+  }
+}
+
+function manualLookup(){
+  const q = document.getElementById('searchInput').value.trim();
+  if(q) loadTeam(q);
+}
+
+// ---- QR Scanner (camera only — no image upload) ----
+function toggleScanner(){
+  if(scannerRunning) stopScanner(); else startScanner();
+}
+
+function startScanner(){
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 240 },
+    onScanSuccess,
+    () => {}
+  ).then(()=>{
+    scannerRunning = true;
+    document.getElementById('scanToggle').textContent = 'Stop Camera';
+  }).catch(err=>{
+    showToast('Camera error — check browser permissions');
+    console.error(err);
+  });
+}
+
+function stopScanner(){
+  if(html5QrCode){
+    html5QrCode.stop().then(()=>{
+      scannerRunning = false;
+      document.getElementById('scanToggle').textContent = 'Start Camera';
+    });
+  }
+}
+
+let lastScan = '', lastScanTime = 0;
+async function onScanSuccess(decodedText){
+  const now = Date.now();
+  if(decodedText === lastScan && (now - lastScanTime) < 4000) return;
+  lastScan = decodedText;
+  lastScanTime = now;
+
+  let teamId = decodedText.trim();
+  try{
+    const payload = JSON.parse(decodedText);
+    if(payload.team_id) teamId = payload.team_id;
+  }catch(e){ /* not JSON — treat raw text as the team_id */ }
+
+  await loadTeam(teamId);
+}
+</script>
+
+</body>
+</html>
