@@ -4,13 +4,13 @@ Uses a Google Service Account (no user login/OAuth flow needed).
 
 Required environment variables (set these in Vercel project settings):
   GOOGLE_SERVICE_ACCOUNT_EMAIL  - the service account's email address
-  GOOGLE_PRIVATE_KEY            - the service account's private key (keep the \n escapes)
+  GOOGLE_PRIVATE_KEY            - the service account's private key (keep the \\n escapes)
   GOOGLE_SHEET_ID               - the spreadsheet ID (from its URL)
 
-Sheet layout (tab name: "CheckIn"), one row per member:
+Sheet layout (tab name: "CheckIn & meals_Tracking"), one row per member:
   A: team_id | B: team_name | C: member_name | D: present (Yes/No)
-  E: lunch (Yes/No) | F: tiffin (Yes/No) | G: checked_in_at
-  H: project_title | I: table_number | J: leader_email
+  E: lunch (Yes/No) | F: dinner (Yes/No) | G: tiffin (Yes/No)
+  H: checked_in_at | I: project_title | J: table_number | K: leader_email
 """
 
 import os
@@ -20,8 +20,20 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 SHEET_NAME = "CheckIn & meals_Tracking"
-DATA_RANGE = f"{SHEET_NAME}!A2:J"
+NUM_COLS = 11
+DATA_RANGE = f"{SHEET_NAME}!A2:K"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+# Single source of truth for column letters. If your sheet layout differs,
+# change only these letters (and the unpacking order in get_team_members).
+COL = {
+    "present": "D",
+    "lunch": "E",
+    "dinner": "F",
+    "tiffin": "G",
+    "checked_in_at": "H",
+}
+MEALS = ("lunch", "dinner", "tiffin")
 
 
 def get_sheets_client():
@@ -65,9 +77,9 @@ def get_team_members(team_id):
     team_name = project_title = table_number = ""
 
     for idx, row in enumerate(rows):
-        padded = row + [""] * (10 - len(row))  # pad short rows
-        (r_team_id, r_team_name, member_name, present, lunch, tiffin,
-         checked_in_at, r_project_title, r_table_number, leader_email) = padded[:10]
+        padded = row + [""] * (NUM_COLS - len(row))  # pad short rows
+        (r_team_id, r_team_name, member_name, present, lunch, dinner, tiffin,
+         checked_in_at, r_project_title, r_table_number, leader_email) = padded[:NUM_COLS]
 
         if (r_team_id or "").strip() == team_id:
             team_name = r_team_name or ""
@@ -76,9 +88,10 @@ def get_team_members(team_id):
             members.append({
                 "row": idx + 2,  # +2: 1-indexed sheet rows, plus header row offset
                 "name": member_name or "",
-                "present": present == "Yes",
-                "lunch": lunch == "Yes",
-                "tiffin": tiffin == "Yes",
+                "present": (present or "").strip() == "Yes",
+                "lunch": (lunch or "").strip() == "Yes",
+                "dinner": (dinner or "").strip() == "Yes",
+                "tiffin": (tiffin or "").strip() == "Yes",
                 "checked_in_at": checked_in_at or None,
                 "leader_email": leader_email or "",
             })
@@ -93,7 +106,7 @@ def get_team_members(team_id):
 
 
 def set_attendance(row, present):
-    """Updates a single member's Present status + timestamp (columns D, G)."""
+    """Updates a single member's Present status + timestamp."""
     service = get_sheets_client()
     spreadsheet_id = get_sheet_id()
     now = (datetime.datetime.utcnow().isoformat() + "Z") if present else ""
@@ -102,21 +115,24 @@ def set_attendance(row, present):
         body={
             "valueInputOption": "RAW",
             "data": [
-                {"range": f"{SHEET_NAME}!D{row}", "values": [["Yes" if present else "No"]]},
-                {"range": f"{SHEET_NAME}!G{row}", "values": [[now]]},
+                {"range": f"{SHEET_NAME}!{COL['present']}{row}",
+                 "values": [["Yes" if present else "No"]]},
+                {"range": f"{SHEET_NAME}!{COL['checked_in_at']}{row}",
+                 "values": [[now]]},
             ],
         },
     ).execute()
 
 
 def set_meal(row, meal, taken):
-    """Updates a single member's meal status (column E for lunch, F for tiffin)."""
-    col = "E" if meal == "lunch" else "F"
+    """Updates a single member's meal status (lunch / dinner / tiffin)."""
+    if meal not in MEALS:
+        raise ValueError(f"Unknown meal '{meal}'")
     service = get_sheets_client()
     spreadsheet_id = get_sheet_id()
     service.spreadsheets().values().update(
         spreadsheetId=spreadsheet_id,
-        range=f"{SHEET_NAME}!{col}{row}",
+        range=f"{SHEET_NAME}!{COL[meal]}{row}",
         valueInputOption="RAW",
         body={"values": [["Yes" if taken else "No"]]},
     ).execute()
