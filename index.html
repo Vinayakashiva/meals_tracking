@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hackathon Meals Register</title>
+<title>CBC 2.0 Meals Tracking</title>
 <style>
   :root {
     --bg: #f5f7f4;
@@ -60,7 +60,6 @@
   .row { display: flex; gap: 8px; }
   .row input { flex: 1; padding: 0 12px; min-width: 0; }
   #reader { width: 100%; margin-top: 12px; border-radius: 8px; overflow: hidden; }
-  #reader:empty { display: none; }
   #status { min-height: 1.4em; margin: 0 0 12px; color: var(--muted); }
   #status.error { color: var(--error); }
   .team-name { font-size: 1.2rem; font-weight: 700; margin: 0; }
@@ -82,7 +81,7 @@
 </head>
 <body>
 <main>
-  <h1>Hackathon Meals Register</h1>
+  <h1>CBC 2.0 Meals Tracking</h1>
 
   <section class="panel" aria-label="Find a team">
     <div class="row">
@@ -97,7 +96,13 @@
   <section id="team" class="panel" hidden></section>
 </main>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  // Fallback CDN if the first one is blocked or fails
+  if (typeof Html5Qrcode === "undefined") {
+    document.write('<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"><\/script>');
+  }
+</script>
 <script>
   const MEALS = ["lunch", "dinner", "tiffin"];
   const SUCCESS_BUZZ = 200;
@@ -206,24 +211,57 @@
     $("scan-btn").textContent = "Scan QR";
   }
 
+  function cameraErrorMessage(err) {
+    const t = String((err && (err.name || err.message)) || err);
+    if (/NotAllowed|Permission|denied/i.test(t))
+      return "Camera permission is blocked. Tap the lock icon in the address bar, allow Camera, then try again.";
+    if (/NotFound|no camera|Requested device not found/i.test(t))
+      return "No camera found on this device.";
+    if (/NotReadable|TrackStart|in use/i.test(t))
+      return "Camera is in use by another app. Close it and try again.";
+    return "Camera could not start (" + t + "). Type the team ID instead.";
+  }
+
   async function startScanner() {
+    if (typeof Html5Qrcode === "undefined") {
+      setStatus("Scanner failed to load. Check your internet connection and reload the page.", true);
+      return;
+    }
+    if (!window.isSecureContext) {
+      setStatus("Camera needs HTTPS. Open the https:// link of this site.", true);
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus("This browser can't access the camera. Open the page in Chrome or Safari, not inside WhatsApp, Instagram or another app.", true);
+      return;
+    }
+
+    setStatus("");
     scanner = new Html5Qrcode("reader");
     $("scan-btn").textContent = "Stop scanning";
-    try {
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        async (decodedText) => {
-          vibrate(SUCCESS_BUZZ); // buzz as soon as a QR code is read
-          await stopScanner();
-          $("team-input").value = decodedText;
-          loadTeam(decodedText);
-        },
-        () => {} // ignore per-frame "no QR found" errors
-      );
-    } catch (err) {
+
+    const config = { fps: 10, qrbox: { width: 240, height: 240 } };
+    const onScan = async (decodedText) => {
+      vibrate(SUCCESS_BUZZ); // buzz as soon as a QR code is read
       await stopScanner();
-      setStatus("Camera unavailable. Allow camera access or type the team ID.", true);
+      $("team-input").value = decodedText;
+      loadTeam(decodedText);
+    };
+
+    try {
+      await scanner.start({ facingMode: "environment" }, config, onScan, () => {});
+    } catch (err1) {
+      // Fallback: pick a camera by id (works on laptops / phones that reject facingMode)
+      try {
+        const cams = await Html5Qrcode.getCameras();
+        if (!cams || !cams.length) throw err1;
+        const back = cams.find((c) => /back|rear|environment/i.test(c.label)) || cams[cams.length - 1];
+        await scanner.start(back.id, config, onScan, () => {});
+      } catch (err2) {
+        await stopScanner();
+        setStatus(cameraErrorMessage(err2), true);
+        vibrate(ERROR_BUZZ);
+      }
     }
   }
 
