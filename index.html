@@ -1,429 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Official Meals Register — Hackathon</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hackathon Meals Register</title>
 <style>
-  :root{
-    --navy:#16305C;
-    --navy-deep:#0E2144;
-    --gold:#B8912F;
-    --bg:#F4F6F9;
-    --panel:#FFFFFF;
-    --border:#E3E7EE;
-    --text:#1F2937;
-    --text-muted:#6B7280;
-    --green:#15803D;
-    --green-bg:#E7F6EC;
-    --red:#B91C1C;
-    --red-bg:#FCE9E9;
-    --font-display:'Playfair Display', serif;
-    --font-body:'Inter', sans-serif;
+  :root {
+    --bg: #f5f7f4;
+    --surface: #ffffff;
+    --ink: #17231c;
+    --muted: #5d6b63;
+    --line: #d8dfd9;
+    --accent: #1f6f4a;
+    --accent-ink: #ffffff;
+    --taken: #1f6f4a;
+    --error: #b3261e;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--font-body);
-    min-height:100vh;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101713;
+      --surface: #19231d;
+      --ink: #e8efe9;
+      --muted: #93a39a;
+      --line: #2b3a31;
+      --accent: #4cc38a;
+      --accent-ink: #08140d;
+      --taken: #4cc38a;
+      --error: #ff8a80;
+    }
   }
-
-  .letterhead{
-    background:linear-gradient(180deg, var(--navy-deep), var(--navy));
-    color:#fff;
-    padding:26px 32px 22px 32px;
-    border-bottom:4px solid var(--gold);
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
   }
-  .letterhead-inner{
-    max-width:1200px;
-    margin:0 auto;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:14px;
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; margin: 8px 0 16px; }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
   }
-  .letterhead h1{
-    font-family:var(--font-display);
-    font-weight:700;
-    font-size:26px;
-    margin:0;
-    letter-spacing:0.01em;
+  button, input {
+    font: inherit;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    min-height: 44px;
+    color: var(--ink);
+    background: var(--surface);
   }
-  .letterhead .subtitle{
-    font-size:13px;
-    color:#C9D3E4;
-    margin-top:4px;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
-  }
-  .seal{
-    font-family:var(--font-display);
-    font-size:12px;
-    color:var(--gold);
-    border:1px solid rgba(184,145,47,0.6);
-    padding:8px 14px;
-    border-radius:6px;
-    text-align:center;
-    line-height:1.5;
-  }
-  .stats-row{
-    display:flex;
-    gap:26px;
-    margin-top:16px;
-    font-size:13px;
-    color:#C9D3E4;
-  }
-  .stats-row b{color:#fff; font-size:15px;}
-
-  .layout{
-    max-width:1200px;
-    margin:0 auto;
-    padding:28px 32px 60px 32px;
-    display:grid;
-    grid-template-columns:380px 1fr;
-    gap:24px;
-  }
-  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
-
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:22px;
-    box-shadow:0 1px 3px rgba(16,24,40,0.04);
-  }
-  .panel h2{
-    font-family:var(--font-body);
-    font-weight:700;
-    font-size:13px;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    color:var(--navy);
-    margin:0 0 16px 0;
-    padding-bottom:10px;
-    border-bottom:1px solid var(--border);
-  }
-
-  #reader{
-    width:100%;
-    border-radius:8px;
-    overflow:hidden;
-    border:1px solid var(--border);
-    background:#0E1116;
-  }
-  .scan-hint{
-    font-size:12.5px;
-    color:var(--text-muted);
-    text-align:center;
-    margin-top:10px;
-  }
-  button{
-    font-family:var(--font-body);
-    font-weight:600;
-    font-size:13.5px;
-    border:none;
-    border-radius:7px;
-    padding:11px 16px;
-    cursor:pointer;
-    transition:opacity 0.15s ease, transform 0.08s ease;
-  }
-  button:active{transform:scale(0.98);}
-  .btn-navy{background:var(--navy); color:#fff; width:100%; margin-top:14px;}
-  .btn-navy:hover{opacity:0.92;}
-  .btn-outline{background:#fff; color:var(--navy); border:1px solid var(--border);}
-  .btn-outline:hover{border-color:var(--navy);}
-
-  .manual-search{margin-top:20px; padding-top:18px; border-top:1px dashed var(--border);}
-  .manual-search label{font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;}
-  .search-row{display:flex; gap:8px; margin-top:8px;}
-  input[type=text]{
-    flex:1;
-    padding:10px 12px;
-    border:1px solid var(--border);
-    border-radius:7px;
-    font-family:var(--font-body);
-    font-size:14px;
-    color:var(--text);
-  }
-  input[type=text]:focus{outline:none; border-color:var(--navy);}
-
-  .empty-state{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:400px;
-    color:var(--text-muted);
-    text-align:center;
-    gap:10px;
-  }
-  .empty-state .glyph{font-size:38px; color:var(--border);}
-
-  .team-header{margin-bottom:20px;}
-  .team-header h1{
-    font-family:var(--font-display);
-    font-size:24px;
-    margin:0 0 6px 0;
-    color:var(--navy);
-  }
-  .team-header .meta{font-size:13px; color:var(--text-muted);}
-  .team-header .meta b{color:var(--navy);}
-
-  .roster{display:flex; flex-direction:column; gap:10px;}
-  .member-card{
-    padding:14px 16px;
-    border:1px solid var(--border);
-    border-radius:9px;
-    background:#FBFCFE;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:12px;
-  }
-  .member-card .name{font-weight:600; font-size:15px; min-width:140px;}
-
-  .meal-groups{display:flex; gap:22px; flex-wrap:wrap;}
-  .meal-group{display:flex; align-items:center; gap:8px;}
-  .meal-group .meal-label{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:0.05em;
-    color:var(--text-muted);
-    width:52px;
-  }
-  .toggle-btns{display:flex; gap:6px;}
-  .toggle-btns button{padding:7px 12px; font-size:12px;}
-  .toggle-btns .active-on{background:var(--green); color:#fff;}
-  .toggle-btns .active-off{background:var(--red); color:#fff;}
-  .toggle-btns .inactive{background:#fff; color:var(--text-muted); border:1px solid var(--border);}
-
-  #toast{
-    position:fixed;
-    bottom:26px;
-    left:50%;
-    transform:translateX(-50%) translateY(16px);
-    background:var(--navy);
-    color:#fff;
-    padding:11px 20px;
-    border-radius:7px;
-    font-size:13.5px;
-    opacity:0;
-    transition:all 0.25s ease;
-    pointer-events:none;
-    z-index:999;
-  }
-  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-
-  footer{
-    text-align:center;
-    font-size:12px;
-    color:var(--text-muted);
-    padding:0 32px 30px 32px;
+  button { cursor: pointer; padding: 0 16px; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; padding: 0 12px; min-width: 0; }
+  #reader { width: 100%; margin-top: 12px; border-radius: 8px; overflow: hidden; }
+  #reader:empty { display: none; }
+  #status { min-height: 1.4em; margin: 0 0 12px; color: var(--muted); }
+  #status.error { color: var(--error); }
+  .team-name { font-size: 1.2rem; font-weight: 700; margin: 0; }
+  .team-meta { color: var(--muted); margin: 4px 0 0; }
+  .member { border-top: 1px solid var(--line); padding: 12px 0; }
+  .member:first-of-type { border-top: 0; }
+  .member-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 8px; }
+  .member-name { font-weight: 600; }
+  .present-tag { font-size: .85rem; color: var(--muted); }
+  .present-tag.yes { color: var(--taken); }
+  .meals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .meal-btn { padding: 0 6px; }
+  .meal-btn.taken { background: var(--taken); border-color: var(--taken); color: var(--accent-ink); font-weight: 600; }
+  .meal-btn:disabled { opacity: .6; cursor: progress; }
+  @media (prefers-reduced-motion: no-preference) {
+    .meal-btn { transition: background-color .15s, color .15s; }
   }
 </style>
 </head>
 <body>
+<main>
+  <h1>Hackathon Meals Register</h1>
 
-<div class="letterhead">
-  <div class="letterhead-inner">
-    <div>
-      <h1>Hackathon 2026 — Official Meals Register</h1>
-      <div class="subtitle">Catering Desk · Member-wise Meal Tracking</div>
+  <section class="panel" aria-label="Find a team">
+    <div class="row">
+      <button id="scan-btn" class="primary" type="button">Scan QR</button>
+      <input id="team-input" type="text" placeholder="Or type team ID" autocomplete="off" aria-label="Team ID">
+      <button id="load-btn" type="button">Look up</button>
     </div>
-    <div class="seal">VERIFIED<br>CHECK-IN SYSTEM</div>
-  </div>
-  <div class="stats-row">
-    <span>Teams Scanned Today: <b id="statScanned">0</b></span>
-  </div>
-</div>
-
-<div class="layout">
-  <div class="panel">
-    <h2>Scan Team QR Code</h2>
     <div id="reader"></div>
-    <div class="scan-hint">Hold the team's QR code steady in front of the camera</div>
-    <button class="btn-navy" id="scanToggle" onclick="toggleScanner()">Start Camera</button>
+  </section>
 
-    <div class="manual-search">
-      <label>Or enter Team ID manually</label>
-      <div class="search-row">
-        <input type="text" id="searchInput" placeholder="e.g. HK2026-001" onkeydown="if(event.key==='Enter') manualLookup()">
-        <button class="btn-outline" onclick="manualLookup()">Go</button>
-      </div>
-    </div>
-  </div>
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="team" class="panel" hidden></section>
+</main>
 
-  <div class="panel">
-    <h2>Team Roster</h2>
-    <div class="empty-state" id="emptyState">
-      <div class="glyph">☐</div>
-      <div>Scan a team's QR code to display<br>its members here for meal tracking.</div>
-    </div>
-    <div id="teamContent" style="display:none;"></div>
-  </div>
-</div>
-
-<footer>Hackathon 2026 · Official Meals System · Data synced live to Google Sheets</footer>
-<div id="toast"></div>
-
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-let currentTeam = null;
-let scannerRunning = false;
-let html5QrCode = null;
-let scannedTeamsCount = 0;
-let scannedIds = new Set();
+  const MEALS = ["lunch", "dinner", "tiffin"];
+  const SUCCESS_BUZZ = 200;
+  const ERROR_BUZZ = [100, 60, 100];
 
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2200);
-}
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const teamEl = $("team");
+  let scanner = null;
+  let currentTeamId = null;
 
-function escapeHtml(str){
-  if(!str) return '';
-  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-async function loadTeam(teamId){
-  try{
-    const res = await fetch(`/api/team?team_id=${encodeURIComponent(teamId)}`);
-    if(!res.ok){
-      const err = await res.json();
-      showToast(err.error || 'Team not found');
-      return;
-    }
-    const team = await res.json();
-    currentTeam = team;
-    renderTeam(team);
-    if(!scannedIds.has(team.team_id)){
-      scannedIds.add(team.team_id);
-      scannedTeamsCount++;
-      document.getElementById('statScanned').textContent = scannedTeamsCount;
-    }
-  }catch(e){
-    showToast('Network error — check your connection');
-    console.error(e);
+  function vibrate(pattern) {
+    // Android browsers only; silently ignored on iOS / desktop.
+    if ("vibrate" in navigator) navigator.vibrate(pattern);
   }
-}
 
-function mealToggle(row, meal, current){
-  return `
-    <div class="meal-group">
-      <span class="meal-label">${meal === 'lunch' ? 'Lunch' : 'Tiffin'}</span>
-      <div class="toggle-btns">
-        <button class="${current ? 'active-on':'inactive'}" onclick="markMeal(${row}, '${meal}', true)">Taken</button>
-        <button class="${!current ? 'active-off':'inactive'}" onclick="markMeal(${row}, '${meal}', false)">Not Yet</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderTeam(team){
-  document.getElementById('emptyState').style.display = 'none';
-  const content = document.getElementById('teamContent');
-  content.style.display = 'block';
-
-  const rosterHtml = team.members.map(m => `
-    <div class="member-card">
-      <div class="name">${escapeHtml(m.name)}</div>
-      <div class="meal-groups">
-        ${mealToggle(m.row, 'lunch', m.lunch)}
-        ${mealToggle(m.row, 'tiffin', m.tiffin)}
-      </div>
-    </div>
-  `).join('');
-
-  content.innerHTML = `
-    <div class="team-header">
-      <h1>${escapeHtml(team.team_name)}</h1>
-      <div class="meta">Team ID <b>${escapeHtml(team.team_id)}</b> &nbsp;·&nbsp; Table ${escapeHtml(team.table_number || '—')} &nbsp;·&nbsp; ${escapeHtml(team.project_title || 'No project title')}</div>
-    </div>
-    <div class="roster">${rosterHtml}</div>
-  `;
-}
-
-async function markMeal(row, meal, taken){
-  try{
-    const res = await fetch('/api/mark', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({row, meal, taken})
-    });
-    if(!res.ok){
-      const err = await res.json();
-      showToast(err.error || 'Could not update');
-      return;
-    }
-    const member = currentTeam.members.find(m => m.row === row);
-    if(member){
-      if(meal === 'lunch') member.lunch = taken; else member.tiffin = taken;
-    }
-    renderTeam(currentTeam);
-    showToast(`${meal === 'lunch' ? 'Lunch' : 'Tiffin'} marked ${taken ? 'taken':'not taken'}`);
-  }catch(e){
-    showToast('Network error — check your connection');
-    console.error(e);
+  function setStatus(msg, isError = false) {
+    statusEl.textContent = msg;
+    statusEl.classList.toggle("error", isError);
   }
-}
 
-function manualLookup(){
-  const q = document.getElementById('searchInput').value.trim();
-  if(q) loadTeam(q);
-}
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
 
-// ---- QR Scanner (camera only — no image upload) ----
-function toggleScanner(){
-  if(scannerRunning) stopScanner(); else startScanner();
-}
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-function startScanner(){
-  html5QrCode = new Html5Qrcode("reader");
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 240 },
-    onScanSuccess,
-    () => {}
-  ).then(()=>{
-    scannerRunning = true;
-    document.getElementById('scanToggle').textContent = 'Stop Camera';
-  }).catch(err=>{
-    showToast('Camera error — check browser permissions');
-    console.error(err);
+  async function loadTeam(teamId) {
+    teamId = (teamId || "").trim();
+    if (!teamId) return;
+    setStatus("Loading team…");
+    try {
+      const res = await fetch("/api/team?team_id=" + encodeURIComponent(teamId));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not load team");
+      currentTeamId = data.team_id;
+      renderTeam(data);
+      setStatus("");
+      return true;
+    } catch (err) {
+      teamEl.hidden = true;
+      setStatus(err.message, true);
+      vibrate(ERROR_BUZZ);
+      return false;
+    }
+  }
+
+  function renderTeam(t) {
+    const meta = [t.project_title, t.table_number ? "Table " + t.table_number : ""]
+      .filter(Boolean).join(" · ");
+    teamEl.hidden = false;
+    teamEl.innerHTML = `
+      <p class="team-name">${esc(t.team_name || t.team_id)}</p>
+      <p class="team-meta">${esc(meta)}</p>
+      <div>
+        ${t.members.map((m) => `
+          <div class="member">
+            <div class="member-head">
+              <span class="member-name">${esc(m.name)}</span>
+              <span class="present-tag ${m.present ? "yes" : ""}">${m.present ? "Checked in" : "Not checked in"}</span>
+            </div>
+            <div class="meals">
+              ${MEALS.map((meal) => `
+                <button type="button"
+                        class="meal-btn ${m[meal] ? "taken" : ""}"
+                        data-row="${m.row}" data-meal="${meal}" data-taken="${m[meal]}"
+                        aria-pressed="${m[meal]}">
+                  ${cap(meal)}${m[meal] ? " ✓" : ""}
+                </button>`).join("")}
+            </div>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  teamEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".meal-btn");
+    if (!btn) return;
+    const row = Number(btn.dataset.row);
+    const meal = btn.dataset.meal;
+    const taken = btn.dataset.taken !== "true"; // toggle
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/mark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ row, meal, taken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save");
+      vibrate(100);
+      await loadTeam(currentTeamId);
+    } catch (err) {
+      btn.disabled = false;
+      setStatus(err.message, true);
+      vibrate(ERROR_BUZZ);
+    }
   });
-}
 
-function stopScanner(){
-  if(html5QrCode){
-    html5QrCode.stop().then(()=>{
-      scannerRunning = false;
-      document.getElementById('scanToggle').textContent = 'Start Camera';
-    });
+  async function stopScanner() {
+    if (!scanner) return;
+    try { await scanner.stop(); } catch (_) {}
+    try { scanner.clear(); } catch (_) {}
+    scanner = null;
+    $("scan-btn").textContent = "Scan QR";
   }
-}
 
-let lastScan = '', lastScanTime = 0;
-async function onScanSuccess(decodedText){
-  const now = Date.now();
-  if(decodedText === lastScan && (now - lastScanTime) < 4000) return;
-  lastScan = decodedText;
-  lastScanTime = now;
+  async function startScanner() {
+    scanner = new Html5Qrcode("reader");
+    $("scan-btn").textContent = "Stop scanning";
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        async (decodedText) => {
+          vibrate(SUCCESS_BUZZ); // buzz as soon as a QR code is read
+          await stopScanner();
+          $("team-input").value = decodedText;
+          loadTeam(decodedText);
+        },
+        () => {} // ignore per-frame "no QR found" errors
+      );
+    } catch (err) {
+      await stopScanner();
+      setStatus("Camera unavailable. Allow camera access or type the team ID.", true);
+    }
+  }
 
-  let teamId = decodedText.trim();
-  try{
-    const payload = JSON.parse(decodedText);
-    if(payload.team_id) teamId = payload.team_id;
-  }catch(e){ /* not JSON — treat raw text as the team_id */ }
-
-  await loadTeam(teamId);
-}
+  $("scan-btn").addEventListener("click", () => (scanner ? stopScanner() : startScanner()));
+  $("load-btn").addEventListener("click", () => loadTeam($("team-input").value));
+  $("team-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") loadTeam(e.target.value);
+  });
 </script>
-
 </body>
 </html>
