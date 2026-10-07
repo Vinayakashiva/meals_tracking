@@ -15,7 +15,7 @@ import os
 
 from flask import Flask, jsonify, request, send_from_directory
 
-from _sheets import get_team_members, set_meal
+from _sheets import get_team_members, set_meal, MEALS
 
 # Optional: load a local .env file if python-dotenv is installed (dev convenience only)
 try:
@@ -63,8 +63,8 @@ def mark():
 
     if not row:
         return jsonify({"error": "row is required"}), 400
-    if meal not in ("lunch", "tiffin"):
-        return jsonify({"error": "meal must be 'lunch' or 'tiffin'"}), 400
+    if meal not in MEALS:
+        return jsonify({"error": f"meal must be one of: {', '.join(MEALS)}"}), 400
 
     try:
         set_meal(row, meal, taken)
